@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet.heat';
 import './Dashboard.css';
 import { api } from '../../Service/api';
+
+// Importar leaflet.heat de forma dinámica
+import 'leaflet.heat';
 
 // Componente personalizado para el mapa de calor
 function HeatmapLayer({ points }) {
@@ -13,6 +15,12 @@ function HeatmapLayer({ points }) {
 
   useEffect(() => {
     if (!map || !points || points.length === 0) return;
+
+    // Verificar que L.heatLayer existe
+    if (!L.heatLayer) {
+      console.error('leaflet.heat no está cargado correctamente');
+      return;
+    }
 
     // Crear capa de calor
     const heatLayer = L.heatLayer(points, {
@@ -52,7 +60,6 @@ function MapController({ center }) {
 }
 
 function Dashboard() {
-  const [incidentes, setIncidentes] = useState([]);
   const [filteredIncidentes, setFilteredIncidentes] = useState([]);
   const [resumen, setResumen] = useState(null);
   const [provincias, setProvincias] = useState([]);
@@ -61,13 +68,11 @@ function Dashboard() {
   // Filtros
   const [filters, setFilters] = useState({
     year: '2024',
-    rangoEdad: 'all',
-    genero: 'all',
     provincia: 'all',
     riesgo: 'all'
   });
   
-  const [mapCenter, setMapCenter] = useState([-1.8312, -78.1834]); // Centro de Ecuador
+  const [mapCenter] = useState([-1.8312, -78.1834]); // Centro de Ecuador
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -80,7 +85,6 @@ function Dashboard() {
           api.getProvincias()
         ]);
         
-        setIncidentes(incidentesData);
         setFilteredIncidentes(incidentesData);
         setResumen(resumenData);
         setProvincias(provinciasData);
@@ -115,11 +119,6 @@ function Dashboard() {
     }));
   };
 
-  const handleApplyRangoEdad = () => {
-    // Lógica para aplicar rango de edad
-    console.log('Aplicar rango de edad');
-  };
-
   // Convertir datos para el mapa de calor
   const heatmapPoints = filteredIncidentes.map(inc => {
     // Intensidad basada en el riesgo
@@ -137,7 +136,7 @@ function Dashboard() {
       <div className="sidebar">
         <div className="sidebar-header">
           <div className="header-icon">🗺️</div>
-          <h2>Mapa Homicidios Ecuador</h2>
+          <h2>Mapa Personas Desaparecidas Ecuador</h2>
         </div>
 
         {/* Filtro de Año */}
@@ -160,11 +159,11 @@ function Dashboard() {
         <div className="filter-section">
           <label className="filter-label">Rango de Edad</label>
           <div className="range-inputs">
-            <input type="number" placeholder="0" className="range-input" />
+            <input type="number" placeholder="0" className="range-input" min="0" />
             <span>-</span>
-            <input type="number" placeholder="100+" className="range-input" />
+            <input type="number" placeholder="100+" className="range-input" max="100" />
           </div>
-          <button className="apply-button" onClick={handleApplyRangoEdad}>
+          <button className="apply-button">
             ⚙️ Aplicar Rango
           </button>
         </div>
@@ -223,8 +222,6 @@ function Dashboard() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          
-          <MapController center={mapCenter} />
           
           {heatmapPoints.length > 0 && (
             <HeatmapLayer points={heatmapPoints} />
