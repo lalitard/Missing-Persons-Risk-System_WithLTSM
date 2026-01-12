@@ -22,18 +22,22 @@ function HeatmapLayer({ points }) {
       return;
     }
 
-    // Crear capa de calor
+    // Crear capa de calor con configuración intensificada
     const heatLayer = L.heatLayer(points, {
-      radius: 25,
-      blur: 15,
-      maxZoom: 17,
-      max: 1.0,
+      radius: 30,           // Radio más grande para mayor visibilidad
+      blur: 20,             // Más blur para efecto suave
+      maxZoom: 10,          // Reducido para que se vea en zoom alejado
+      max: 3.0,             // Aumentado para intensificar colores
+      minOpacity: 0.6,      // Opacidad mínima para mejor visibilidad
       gradient: {
-        0.0: 'blue',
+        0.0: 'rgba(0, 0, 255, 0)',
+        0.2: 'blue',
+        0.4: 'cyan',
         0.5: 'lime',
-        0.7: 'yellow',
-        0.85: 'orange',
-        1.0: 'red'
+        0.6: 'yellow',
+        0.75: 'orange',
+        0.9: 'red',
+        1.0: 'darkred'
       }
     }).addTo(map);
 
@@ -119,10 +123,10 @@ function Dashboard() {
     }));
   };
 
-  // Convertir datos para el mapa de calor
+  // Convertir datos para el mapa de calor con intensidades amplificadas
   const heatmapPoints = filteredIncidentes.map(inc => {
-    // Intensidad basada en el riesgo
-    const intensity = inc.riesgo === 'alto' ? 1.0 : inc.riesgo === 'medio' ? 0.6 : 0.3;
+    // Intensidad muy aumentada basada en el riesgo
+    const intensity = inc.riesgo === 'alto' ? 5.0 : inc.riesgo === 'medio' ? 2.5 : 1.0;
     return [inc.lat, inc.lng, intensity];
   });
 

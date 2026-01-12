@@ -6,55 +6,62 @@
   background-color: #1a1a1a;
   color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  overflow: hidden;
 }
 
 /* Sidebar */
 .sidebar {
-  width: 280px;
+  width: 300px;
+  min-width: 300px;
   background-color: #0a0a0a;
-  padding: 20px;
+  padding: 15px;
   overflow-y: auto;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
   border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-header {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .header-icon {
-  font-size: 48px;
-  margin-bottom: 10px;
+  font-size: 40px;
+  margin-bottom: 8px;
 }
 
 .sidebar-header h2 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
   color: #ff4444;
+  line-height: 1.3;
 }
 
 .filter-section {
-  margin-bottom: 25px;
+  margin-bottom: 18px;
+  flex-shrink: 0;
 }
 
 .filter-label {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #cccccc;
 }
 
 .filter-select {
   width: 100%;
-  padding: 10px;
+  padding: 8px 10px;
   background-color: #1e1e1e;
   border: 1px solid #333;
   border-radius: 6px;
   color: #ffffff;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: border-color 0.2s;
 }
@@ -71,18 +78,20 @@
 .range-inputs {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .range-input {
   flex: 1;
-  padding: 8px;
+  padding: 6px 8px;
   background-color: #1e1e1e;
   border: 1px solid #333;
   border-radius: 6px;
   color: #ffffff;
-  font-size: 14px;
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .range-input:focus {
@@ -92,16 +101,17 @@
 
 .range-inputs span {
   color: #666;
+  font-size: 12px;
 }
 
 .apply-button {
   width: 100%;
-  padding: 10px;
+  padding: 8px;
   background-color: #2a2a2a;
   border: 1px solid #444;
   border-radius: 6px;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -114,27 +124,29 @@
 .checkbox-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .checkbox-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 /* Mapa */
 .map-container {
   flex: 1;
   position: relative;
+  overflow: hidden;
 }
 
 .leaflet-container {
@@ -152,6 +164,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   border: 1px solid #333;
   min-width: 280px;
+  max-width: 320px;
   z-index: 1000;
   backdrop-filter: blur(10px);
 }
@@ -182,6 +195,7 @@
 
 .stat-icon {
   font-size: 24px;
+  flex-shrink: 0;
 }
 
 .stat-label {
@@ -223,11 +237,12 @@
   border-radius: 6px;
   background: linear-gradient(to right, 
     blue 0%, 
-    cyan 25%, 
-    lime 50%, 
-    yellow 70%, 
-    orange 85%, 
-    red 100%
+    cyan 20%, 
+    lime 40%, 
+    yellow 60%, 
+    orange 75%, 
+    red 90%,
+    darkred 100%
   );
   box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
 }
@@ -245,7 +260,7 @@
 
 /* Scrollbar personalizado */
 .sidebar::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .sidebar::-webkit-scrollbar-track {
@@ -254,7 +269,7 @@
 
 .sidebar::-webkit-scrollbar-thumb {
   background: #333;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
@@ -270,6 +285,7 @@
   .sidebar {
     width: 100%;
     max-height: 40vh;
+    min-width: auto;
   }
   
   .summary-panel {
@@ -277,5 +293,6 @@
     top: 0;
     right: 0;
     margin: 10px;
+    max-width: none;
   }
 }
