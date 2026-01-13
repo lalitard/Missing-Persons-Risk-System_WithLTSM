@@ -11,8 +11,8 @@
 
 /* Sidebar */
 .sidebar {
-  width: 300px;
-  min-width: 300px;
+  width: 340px;
+  min-width: 340px;
   background-color: #0a0a0a;
   padding: 15px;
   overflow-y: auto;
@@ -54,9 +54,10 @@
   color: #cccccc;
 }
 
-.filter-select {
+.filter-select,
+.filter-input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background-color: #1e1e1e;
   border: 1px solid #333;
   border-radius: 6px;
@@ -64,82 +65,155 @@
   font-size: 13px;
   cursor: pointer;
   transition: border-color 0.2s;
-}
-
-.filter-select:hover {
-  border-color: #555;
-}
-
-.filter-select:focus {
-  outline: none;
-  border-color: #ff4444;
-}
-
-.range-inputs {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.range-input {
-  flex: 1;
-  padding: 6px 8px;
-  background-color: #1e1e1e;
-  border: 1px solid #333;
-  border-radius: 6px;
-  color: #ffffff;
-  font-size: 13px;
-  width: 100%;
   box-sizing: border-box;
 }
 
-.range-input:focus {
+.filter-input {
+  cursor: text;
+}
+
+.filter-input[type="number"] {
+  font-family: 'Courier New', monospace;
+}
+
+.filter-input[type="date"] {
+  cursor: pointer;
+}
+
+.filter-select:hover,
+.filter-input:hover {
+  border-color: #555;
+}
+
+.filter-select:focus,
+.filter-input:focus {
   outline: none;
   border-color: #ff4444;
 }
 
-.range-inputs span {
-  color: #666;
-  font-size: 12px;
+/* Estilos para el datepicker */
+.filter-input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
 }
 
-.apply-button {
+.apply-button-main {
   width: 100%;
-  padding: 8px;
-  background-color: #2a2a2a;
-  border: 1px solid #444;
+  padding: 12px;
+  background-color: #ff4444;
+  border: none;
   border-radius: 6px;
   color: #ffffff;
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.apply-button:hover {
-  background-color: #333;
-  border-color: #555;
+.apply-button-main:hover:not(:disabled) {
+  background-color: #ff6666;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
 }
 
-.checkbox-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.apply-button-main:active:not(:disabled) {
+  transform: translateY(0);
 }
 
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  font-size: 13px;
+.apply-button-main:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.checkbox-label input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
+/* Información del modelo */
+.model-info {
+  margin-top: 10px;
+  padding: 15px;
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
   flex-shrink: 0;
+}
+
+.model-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ff4444;
+}
+
+.model-info p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #999;
+}
+
+.model-info strong {
+  color: #cccccc;
+}
+
+/* Resultado de la predicción */
+.prediction-result {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.prediction-result h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-label {
+  font-size: 12px;
+  color: #999;
+}
+
+.result-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.result-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.result-badge.bajo {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.result-badge.medio {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #FFC107;
+}
+
+.result-badge.alto {
+  background-color: rgba(244, 67, 54, 0.2);
+  color: #F44336;
 }
 
 /* Mapa */
@@ -151,6 +225,21 @@
 
 .leaflet-container {
   background-color: #1a1a1a !important;
+}
+
+/* Overlay de carga del mapa */
+.map-loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(10, 10, 10, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(5px);
 }
 
 /* Panel de resumen */
@@ -210,6 +299,12 @@
   color: #ffffff;
 }
 
+.stat-value-small {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
 /* Leyenda */
 .legend {
   border-top: 1px solid #333;
@@ -247,17 +342,6 @@
   box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
 }
 
-/* Loading */
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 20px;
-  color: #ffffff;
-  background-color: #1a1a1a;
-}
-
 /* Scrollbar personalizado */
 .sidebar::-webkit-scrollbar {
   width: 6px;
@@ -284,7 +368,7 @@
   
   .sidebar {
     width: 100%;
-    max-height: 40vh;
+    max-height: 60vh;
     min-width: auto;
   }
   
@@ -294,5 +378,9 @@
     right: 0;
     margin: 10px;
     max-width: none;
+  }
+
+  .map-loader-overlay {
+    position: fixed;
   }
 }

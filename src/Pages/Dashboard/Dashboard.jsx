@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Dashboard.css';
 import { api } from '../../Service/api';
+import Loader from '../../Components/Loader/Loader';
 
 // Importar leaflet.heat de forma dinámica
 import 'leaflet.heat';
@@ -50,71 +51,106 @@ function HeatmapLayer({ points }) {
   return null;
 }
 
-// Componente para actualizar el centro del mapa
-function MapController({ center }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (center) {
-      map.setView(center, map.getZoom());
-    }
-  }, [center, map]);
-  
-  return null;
-}
-
 function Dashboard() {
-  const [filteredIncidentes, setFilteredIncidentes] = useState([]);
-  const [resumen, setResumen] = useState(null);
+  const [heatmapData, setHeatmapData] = useState([]);
   const [provincias, setProvincias] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [resultadoPrediccion, setResultadoPrediccion] = useState(null);
   
   // Filtros
   const [filters, setFilters] = useState({
-    year: '2024',
+    fecha: '',
     provincia: 'all',
-    riesgo: 'all'
+    latitud: '',
+    longitud: '',
+    modelo: 'modelo1'
   });
   
   const [mapCenter] = useState([-1.8312, -78.1834]); // Centro de Ecuador
 
-  // Cargar datos iniciales
+  // Cargar provincias al montar
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const [incidentesData, resumenData, provinciasData] = await Promise.all([
-          api.getIncidentes(),
-          api.getResumen(),
-          api.getProvincias()
-        ]);
-        
-        setFilteredIncidentes(incidentesData);
-        setResumen(resumenData);
-        setProvincias(provinciasData);
-      } catch (error) {
-        console.error('Error cargando datos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadData();
+    const provinciasData = api.getProvincias();
+    setProvincias(provinciasData);
   }, []);
 
-  // Aplicar filtros
-  useEffect(() => {
-    const applyFilters = async () => {
-      try {
-        const filtered = await api.getIncidentesFiltrados(filters);
-        setFilteredIncidentes(filtered);
-      } catch (error) {
-        console.error('Error aplicando filtros:', error);
-      }
-    };
+  // Aplicar filtros y hacer predicción
+  const handleApplyFilters = async () => {
+    // Validaciones
+    if (!filters.fecha) {
+      alert('Por favor selecciona una fecha');
+      return;
+    }
     
-    applyFilters();
-  }, [filters]);
+    if (filters.provincia === 'all') {
+      alert('Por favor selecciona una provincia');
+      return;
+    }
+
+    if (filters.modelo === 'modelo2') {
+      if (!filters.latitud || !filters.longitud) {
+        alert('Para el Modelo 2, debes ingresar latitud y longitud');
+        return;
+      }
+    }
+
+    try {
+      setLoading(true);
+      setResultadoPrediccion(null);
+      setHeatmapData([]);
+
+      if (filters.modelo === 'modelo1') {
+        // Procesar Modelo 1
+        const resultado = await api.procesarModelo1(
+          filters.fecha,
+          filters.provincia
+        );
+
+        setResultadoPrediccion({
+          tipo: 'modelo1',
+          contexto: resultado.contexto,
+          totalPuntos: resultado.puntos.length
+        });
+
+        // Convertir puntos para el mapa de calor
+        const heatPoints = resultado.puntos.map(punto => [
+          punto.lat,
+          punto.lng,
+          punto.peso || 1.0
+        ]);
+
+        setHeatmapData(heatPoints);
+      } else {
+        // Procesar Modelo 2
+        const puntos = await api.procesarModelo2(
+          filters.fecha,
+          filters.provincia,
+          filters.latitud,
+          filters.longitud
+        );
+
+        setResultadoPrediccion({
+          tipo: 'modelo2',
+          totalPuntos: puntos.length,
+          riesgoPromedio: puntos.length > 0 ? puntos[0].riesgo : 'N/A'
+        });
+
+        // Convertir puntos para el mapa de calor
+        const heatPoints = puntos.map(punto => [
+          punto.lat,
+          punto.lng,
+          punto.peso || 1.0
+        ]);
+
+        setHeatmapData(heatPoints);
+      }
+    } catch (error) {
+      console.error('Error al aplicar filtros:', error);
+      alert('Error al procesar la predicción. Verifica que el servidor esté activo.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFilterChange = (filterName, value) => {
     setFilters(prev => ({
@@ -122,17 +158,6 @@ function Dashboard() {
       [filterName]: value
     }));
   };
-
-  // Convertir datos para el mapa de calor con intensidades amplificadas
-  const heatmapPoints = filteredIncidentes.map(inc => {
-    // Intensidad muy aumentada basada en el riesgo
-    const intensity = inc.riesgo === 'alto' ? 5.0 : inc.riesgo === 'medio' ? 2.5 : 1.0;
-    return [inc.lat, inc.lng, intensity];
-  });
-
-  if (loading) {
-    return <div className="loading">Cargando datos...</div>;
-  }
 
   return (
     <div className="dashboard">
@@ -143,44 +168,32 @@ function Dashboard() {
           <h2>Mapa Personas Desaparecidas Ecuador</h2>
         </div>
 
-        {/* Filtro de Año */}
+        {/* Selector de Modelo */}
         <div className="filter-section">
           <label className="filter-label">
-            📅 Año
+            🤖 Modelo de Predicción
           </label>
           <select 
             className="filter-select"
-            value={filters.year}
-            onChange={(e) => handleFilterChange('year', e.target.value)}
+            value={filters.modelo}
+            onChange={(e) => handleFilterChange('modelo', e.target.value)}
           >
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
-            <option value="all">Todos</option>
+            <option value="modelo1">Modelo 1 - Análisis Provincial</option>
+            <option value="modelo2">Modelo 2 - Análisis Geoespacial</option>
           </select>
         </div>
 
-        {/* Filtro de Rango de Edad */}
+        {/* Filtro de Fecha con DatePicker */}
         <div className="filter-section">
-          <label className="filter-label">Rango de Edad</label>
-          <div className="range-inputs">
-            <input type="number" placeholder="0" className="range-input" min="0" />
-            <span>-</span>
-            <input type="number" placeholder="100+" className="range-input" max="100" />
-          </div>
-          <button className="apply-button">
-            ⚙️ Aplicar Rango
-          </button>
-        </div>
-
-        {/* Filtro de Género */}
-        <div className="filter-section">
-          <label className="filter-label">👥 Género</label>
-          <div className="checkbox-group">
-            <label className="checkbox-label">
-              <input type="checkbox" defaultChecked />
-              <span>Todos</span>
-            </label>
-          </div>
+          <label className="filter-label">
+            📅 Fecha
+          </label>
+          <input 
+            type="date"
+            className="filter-input"
+            value={filters.fecha}
+            onChange={(e) => handleFilterChange('fecha', e.target.value)}
+          />
         </div>
 
         {/* Filtro de Provincia */}
@@ -191,31 +204,119 @@ function Dashboard() {
             value={filters.provincia}
             onChange={(e) => handleFilterChange('provincia', e.target.value)}
           >
-            <option value="all">Todas las provincias</option>
+            <option value="all">Selecciona una provincia</option>
             {provincias.map(prov => (
               <option key={prov} value={prov}>{prov}</option>
             ))}
           </select>
         </div>
 
-        {/* Filtro de Riesgo */}
+        {/* Campos de Latitud y Longitud - Solo para Modelo 2 */}
+        {filters.modelo === 'modelo2' && (
+          <>
+            <div className="filter-section">
+              <label className="filter-label">🌐 Latitud</label>
+              <input 
+                type="number"
+                step="0.000001"
+                placeholder="Ej: -2.1709"
+                className="filter-input"
+                value={filters.latitud}
+                onChange={(e) => handleFilterChange('latitud', e.target.value)}
+              />
+            </div>
+
+            <div className="filter-section">
+              <label className="filter-label">🌐 Longitud</label>
+              <input 
+                type="number"
+                step="0.000001"
+                placeholder="Ej: -79.9224"
+                className="filter-input"
+                value={filters.longitud}
+                onChange={(e) => handleFilterChange('longitud', e.target.value)}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Botón para aplicar filtros */}
         <div className="filter-section">
-          <label className="filter-label">⚠️ Nivel de Riesgo</label>
-          <select 
-            className="filter-select"
-            value={filters.riesgo}
-            onChange={(e) => handleFilterChange('riesgo', e.target.value)}
+          <button 
+            className="apply-button-main" 
+            onClick={handleApplyFilters}
+            disabled={loading}
           >
-            <option value="all">Todos los niveles</option>
-            <option value="alto">Alto</option>
-            <option value="medio">Medio</option>
-            <option value="bajo">Bajo</option>
-          </select>
+            {loading ? '⏳ Procesando...' : '🔍 Aplicar Filtros'}
+          </button>
         </div>
+
+        {/* Información del modelo seleccionado */}
+        <div className="model-info">
+          <h4>ℹ️ Información del Modelo</h4>
+          {filters.modelo === 'modelo1' ? (
+            <p>
+              <strong>Modelo 1:</strong> Analiza patrones basados en fecha y provincia. 
+              Genera predicciones en 5 puntos estratégicos de la provincia seleccionada.
+            </p>
+          ) : (
+            <p>
+              <strong>Modelo 2:</strong> Análisis geoespacial preciso usando fecha, provincia 
+              y coordenadas específicas. Proporciona resultados más detallados por ubicación.
+            </p>
+          )}
+        </div>
+
+        {/* Resultado de la predicción */}
+        {resultadoPrediccion && (
+          <div className="prediction-result">
+            <h4>📊 Resultado de la Predicción</h4>
+            {resultadoPrediccion.tipo === 'modelo1' && (
+              <>
+                <div className="result-item">
+                  <span className="result-label">Desapariciones estimadas:</span>
+                  <span className="result-value">
+                    {resultadoPrediccion.contexto.desapariciones_estimadas.toFixed(2)}
+                  </span>
+                </div>
+                <div className="result-item">
+                  <span className="result-label">Nivel de riesgo:</span>
+                  <span className={`result-badge ${resultadoPrediccion.contexto.riesgo_label.toLowerCase()}`}>
+                    {resultadoPrediccion.contexto.riesgo_label}
+                  </span>
+                </div>
+                <div className="result-item">
+                  <span className="result-label">Puntos analizados:</span>
+                  <span className="result-value">{resultadoPrediccion.totalPuntos}</span>
+                </div>
+              </>
+            )}
+            {resultadoPrediccion.tipo === 'modelo2' && (
+              <>
+                <div className="result-item">
+                  <span className="result-label">Puntos analizados:</span>
+                  <span className="result-value">{resultadoPrediccion.totalPuntos}</span>
+                </div>
+                <div className="result-item">
+                  <span className="result-label">Riesgo detectado:</span>
+                  <span className={`result-badge ${resultadoPrediccion.riesgoPromedio.toLowerCase()}`}>
+                    {resultadoPrediccion.riesgoPromedio}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Mapa */}
       <div className="map-container">
+        {loading && (
+          <div className="map-loader-overlay">
+            <Loader message="Procesando predicción en múltiples puntos..." />
+          </div>
+        )}
+        
         <MapContainer
           center={mapCenter}
           zoom={7}
@@ -227,42 +328,42 @@ function Dashboard() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           
-          {heatmapPoints.length > 0 && (
-            <HeatmapLayer points={heatmapPoints} />
+          {heatmapData.length > 0 && (
+            <HeatmapLayer points={heatmapData} />
           )}
         </MapContainer>
 
         {/* Panel de resumen */}
-        {resumen && (
+        {heatmapData.length > 0 && (
           <div className="summary-panel">
-            <h3>📊 Resumen de Incidentes</h3>
+            <h3>📊 Resumen de Predicción</h3>
             <div className="summary-stats">
-              <div className="stat-item">
-                <span className="stat-icon">👥</span>
-                <div>
-                  <div className="stat-label">Total víctimas:</div>
-                  <div className="stat-value">{filteredIncidentes.length}</div>
-                </div>
-              </div>
               <div className="stat-item">
                 <span className="stat-icon">📍</span>
                 <div>
-                  <div className="stat-label">Con coordenadas:</div>
-                  <div className="stat-value">{filteredIncidentes.length}</div>
+                  <div className="stat-label">Puntos de riesgo:</div>
+                  <div className="stat-value">{heatmapData.length}</div>
                 </div>
               </div>
               <div className="stat-item">
-                <span className="stat-icon">❌</span>
+                <span className="stat-icon">🤖</span>
                 <div>
-                  <div className="stat-label">Sin coordenadas:</div>
-                  <div className="stat-value">0</div>
+                  <div className="stat-label">Modelo activo:</div>
+                  <div className="stat-value">{filters.modelo === 'modelo1' ? 'M1' : 'M2'}</div>
+                </div>
+              </div>
+              <div className="stat-item">
+                <span className="stat-icon">📅</span>
+                <div>
+                  <div className="stat-label">Fecha analizada:</div>
+                  <div className="stat-value-small">{filters.fecha}</div>
                 </div>
               </div>
             </div>
 
             {/* Leyenda del mapa de calor */}
             <div className="legend">
-              <h4>Intensidad de Incidentes</h4>
+              <h4>Intensidad de Riesgo</h4>
               <div className="legend-gradient">
                 <span>Bajo</span>
                 <div className="gradient-bar"></div>

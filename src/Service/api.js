@@ -1,180 +1,365 @@
-// src/Service/api.js
-const mockData = {
-  incidentes: [
-    // GUAYAS - GUAYAQUIL (Zona de MUY ALTA concentración - ROJO)
-    // Norte de Guayaquil
-    { id: 1, lat: -2.1709, lng: -79.9224, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-15" },
-    { id: 2, lat: -2.1720, lng: -79.9210, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-16" },
-    { id: 3, lat: -2.1695, lng: -79.9240, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-17" },
-    { id: 4, lat: -2.1730, lng: -79.9200, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-18" },
-    { id: 5, lat: -2.1680, lng: -79.9250, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-19" },
-    
-    // Centro de Guayaquil
-    { id: 6, lat: -2.1894, lng: -79.8866, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-20" },
-    { id: 7, lat: -2.1900, lng: -79.8850, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-21" },
-    { id: 8, lat: -2.1880, lng: -79.8880, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-22" },
-    { id: 9, lat: -2.1910, lng: -79.8840, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-23" },
-    { id: 10, lat: -2.1870, lng: -79.8890, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-24" },
-    { id: 11, lat: -2.1920, lng: -79.8830, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-25" },
-    { id: 12, lat: -2.1860, lng: -79.8900, provincia: "Guayas", riesgo: "alto", fecha: "2024-01-26" },
-    
-    // Sur de Guayaquil
-    { id: 13, lat: -2.2158, lng: -79.8897, provincia: "Guayas", riesgo: "alto", fecha: "2024-02-15" },
-    { id: 14, lat: -2.2170, lng: -79.8880, provincia: "Guayas", riesgo: "alto", fecha: "2024-02-16" },
-    { id: 15, lat: -2.2140, lng: -79.8910, provincia: "Guayas", riesgo: "alto", fecha: "2024-02-17" },
-    { id: 16, lat: -2.2180, lng: -79.8870, provincia: "Guayas", riesgo: "alto", fecha: "2024-02-18" },
-    { id: 17, lat: -2.2130, lng: -79.8920, provincia: "Guayas", riesgo: "alto", fecha: "2024-02-19" },
-    { id: 18, lat: -2.2190, lng: -79.8860, provincia: "Guayas", riesgo: "alto", fecha: "2024-02-20" },
-    
-    // Durán
-    { id: 19, lat: -2.1479, lng: -79.9663, provincia: "Guayas", riesgo: "alto", fecha: "2024-02-10" },
-    { id: 20, lat: -2.1490, lng: -79.9650, provincia: "Guayas", riesgo: "alto", fecha: "2024-02-11" },
-    { id: 21, lat: -2.1470, lng: -79.9675, provincia: "Guayas", riesgo: "alto", fecha: "2024-02-12" },
-    { id: 22, lat: -2.1500, lng: -79.9640, provincia: "Guayas", riesgo: "alto", fecha: "2024-02-13" },
-    
-    // PICHINCHA - QUITO (Zona de ALTA concentración - NARANJA/ROJO)
-    // Norte de Quito
-    { id: 23, lat: -0.1807, lng: -78.4678, provincia: "Pichincha", riesgo: "alto", fecha: "2024-01-18" },
-    { id: 24, lat: -0.1820, lng: -78.4665, provincia: "Pichincha", riesgo: "alto", fecha: "2024-01-19" },
-    { id: 25, lat: -0.1795, lng: -78.4690, provincia: "Pichincha", riesgo: "alto", fecha: "2024-01-20" },
-    { id: 26, lat: -0.1830, lng: -78.4655, provincia: "Pichincha", riesgo: "alto", fecha: "2024-01-21" },
-    
-    // Centro de Quito
-    { id: 27, lat: -0.2295, lng: -78.5249, provincia: "Pichincha", riesgo: "alto", fecha: "2024-02-05" },
-    { id: 28, lat: -0.2310, lng: -78.5235, provincia: "Pichincha", riesgo: "alto", fecha: "2024-02-06" },
-    { id: 29, lat: -0.2280, lng: -78.5260, provincia: "Pichincha", riesgo: "alto", fecha: "2024-02-07" },
-    { id: 30, lat: -0.2320, lng: -78.5225, provincia: "Pichincha", riesgo: "alto", fecha: "2024-02-08" },
-    { id: 31, lat: -0.2270, lng: -78.5270, provincia: "Pichincha", riesgo: "alto", fecha: "2024-02-09" },
-    
-    // Sur de Quito
-    { id: 32, lat: -0.2902, lng: -78.5458, provincia: "Pichincha", riesgo: "alto", fecha: "2024-02-20" },
-    { id: 33, lat: -0.2920, lng: -78.5445, provincia: "Pichincha", riesgo: "alto", fecha: "2024-02-21" },
-    { id: 34, lat: -0.2885, lng: -78.5470, provincia: "Pichincha", riesgo: "alto", fecha: "2024-02-22" },
-    { id: 35, lat: -0.2935, lng: -78.5435, provincia: "Pichincha", riesgo: "alto", fecha: "2024-02-23" },
-    
-    // ESMERALDAS (Zona de ALTA concentración - NARANJA)
-    { id: 36, lat: 0.9681, lng: -79.6517, provincia: "Esmeraldas", riesgo: "alto", fecha: "2024-02-08" },
-    { id: 37, lat: 0.9695, lng: -79.6505, provincia: "Esmeraldas", riesgo: "alto", fecha: "2024-02-09" },
-    { id: 38, lat: 0.9670, lng: -79.6530, provincia: "Esmeraldas", riesgo: "alto", fecha: "2024-02-10" },
-    { id: 39, lat: 0.9705, lng: -79.6495, provincia: "Esmeraldas", riesgo: "alto", fecha: "2024-02-11" },
-    { id: 40, lat: 0.9660, lng: -79.6540, provincia: "Esmeraldas", riesgo: "alto", fecha: "2024-02-12" },
-    { id: 41, lat: 0.9715, lng: -79.6485, provincia: "Esmeraldas", riesgo: "alto", fecha: "2024-02-13" },
-    
-    // MANABÍ - MANTA/PORTOVIEJO (Zona de MEDIA-ALTA concentración - AMARILLO)
-    { id: 42, lat: -0.9537, lng: -80.7089, provincia: "Manabí", riesgo: "alto", fecha: "2024-02-12" },
-    { id: 43, lat: -0.9550, lng: -80.7075, provincia: "Manabí", riesgo: "alto", fecha: "2024-02-13" },
-    { id: 44, lat: -0.9525, lng: -80.7100, provincia: "Manabí", riesgo: "alto", fecha: "2024-02-14" },
-    { id: 45, lat: -1.0543, lng: -80.4559, provincia: "Manabí", riesgo: "medio", fecha: "2024-01-25" },
-    { id: 46, lat: -1.0560, lng: -80.4545, provincia: "Manabí", riesgo: "medio", fecha: "2024-01-26" },
-    { id: 47, lat: -1.0530, lng: -80.4570, provincia: "Manabí", riesgo: "medio", fecha: "2024-01-27" },
-    { id: 48, lat: -1.0356, lng: -80.6539, provincia: "Manabí", riesgo: "medio", fecha: "2024-03-08" },
-    
-    // EL ORO - MACHALA (Zona de MEDIA concentración - AMARILLO)
-    { id: 49, lat: -3.2581, lng: -79.9553, provincia: "El Oro", riesgo: "medio", fecha: "2024-01-30" },
-    { id: 50, lat: -3.2595, lng: -79.9540, provincia: "El Oro", riesgo: "medio", fecha: "2024-01-31" },
-    { id: 51, lat: -3.2570, lng: -79.9565, provincia: "El Oro", riesgo: "medio", fecha: "2024-02-01" },
-    { id: 52, lat: -3.2677, lng: -79.9598, provincia: "El Oro", riesgo: "alto", fecha: "2024-02-18" },
-    { id: 53, lat: -3.2690, lng: -79.9585, provincia: "El Oro", riesgo: "medio", fecha: "2024-02-19" },
-    
-    // SANTO DOMINGO (Zona de MEDIA-ALTA concentración - AMARILLO)
-    { id: 54, lat: -0.2521, lng: -79.1753, provincia: "Santo Domingo", riesgo: "medio", fecha: "2024-02-25" },
-    { id: 55, lat: -0.2535, lng: -79.1740, provincia: "Santo Domingo", riesgo: "medio", fecha: "2024-02-26" },
-    { id: 56, lat: -0.2510, lng: -79.1765, provincia: "Santo Domingo", riesgo: "medio", fecha: "2024-02-27" },
-    { id: 57, lat: -0.2394, lng: -79.1894, provincia: "Santo Domingo", riesgo: "alto", fecha: "2024-03-20" },
-    { id: 58, lat: -0.2410, lng: -79.1880, provincia: "Santo Domingo", riesgo: "medio", fecha: "2024-03-21" },
-    
-    // LOS RÍOS (Zona de MEDIA concentración)
-    { id: 59, lat: -1.8016, lng: -79.5341, provincia: "Los Ríos", riesgo: "medio", fecha: "2024-02-01" },
-    { id: 60, lat: -1.8030, lng: -79.5330, provincia: "Los Ríos", riesgo: "medio", fecha: "2024-02-02" },
-    { id: 61, lat: -1.0278, lng: -79.4631, provincia: "Los Ríos", riesgo: "medio", fecha: "2024-03-12" },
-    { id: 62, lat: -1.0290, lng: -79.4620, provincia: "Los Ríos", riesgo: "medio", fecha: "2024-03-13" },
-    
-    // AZUAY - CUENCA (Zona de BAJA-MEDIA concentración)
-    { id: 63, lat: -2.9001, lng: -79.0059, provincia: "Azuay", riesgo: "bajo", fecha: "2024-01-22" },
-    { id: 64, lat: -2.8833, lng: -78.9833, provincia: "Azuay", riesgo: "medio", fecha: "2024-03-01" },
-    { id: 65, lat: -2.9015, lng: -79.0045, provincia: "Azuay", riesgo: "bajo", fecha: "2024-03-02" },
-    
-    // TUNGURAHUA, IMBABURA, SANTA ELENA, COTOPAXI, CHIMBORAZO (Dispersos)
-    { id: 66, lat: -1.2490, lng: -78.6167, provincia: "Tungurahua", riesgo: "bajo", fecha: "2024-01-28" },
-    { id: 67, lat: -1.2394, lng: -78.6294, provincia: "Tungurahua", riesgo: "medio", fecha: "2024-03-05" },
-    { id: 68, lat: 0.3518, lng: -78.1226, provincia: "Imbabura", riesgo: "bajo", fecha: "2024-02-14" },
-    { id: 69, lat: -2.2268, lng: -80.8590, provincia: "Santa Elena", riesgo: "medio", fecha: "2024-03-22" },
-    { id: 70, lat: -0.9347, lng: -78.6156, provincia: "Cotopaxi", riesgo: "bajo", fecha: "2024-02-28" },
-    { id: 71, lat: -1.6635, lng: -78.6547, provincia: "Chimborazo", riesgo: "medio", fecha: "2024-03-16" },
-    
-    // Más puntos concentrados en Guayaquil para intensificar el rojo
-    { id: 72, lat: -2.1750, lng: -79.9180, provincia: "Guayas", riesgo: "alto", fecha: "2024-03-01" },
-    { id: 73, lat: -2.1760, lng: -79.9170, provincia: "Guayas", riesgo: "alto", fecha: "2024-03-02" },
-    { id: 74, lat: -2.1740, lng: -79.9190, provincia: "Guayas", riesgo: "alto", fecha: "2024-03-03" },
-    { id: 75, lat: -2.1850, lng: -79.8920, provincia: "Guayas", riesgo: "alto", fecha: "2024-03-04" },
-    { id: 76, lat: -2.1840, lng: -79.8930, provincia: "Guayas", riesgo: "alto", fecha: "2024-03-05" },
-    { id: 77, lat: -2.2100, lng: -79.8950, provincia: "Guayas", riesgo: "alto", fecha: "2024-03-06" },
-    { id: 78, lat: -2.2110, lng: -79.8940, provincia: "Guayas", riesgo: "alto", fecha: "2024-03-07" },
-    { id: 79, lat: -2.2120, lng: -79.8930, provincia: "Guayas", riesgo: "alto", fecha: "2024-03-08" },
-    
-    // Más puntos concentrados en Quito
-    { id: 80, lat: -0.1850, lng: -78.4640, provincia: "Pichincha", riesgo: "alto", fecha: "2024-03-09" },
-    { id: 81, lat: -0.2250, lng: -78.5280, provincia: "Pichincha", riesgo: "alto", fecha: "2024-03-10" },
-    { id: 82, lat: -0.2260, lng: -78.5290, provincia: "Pichincha", riesgo: "alto", fecha: "2024-03-11" },
-    { id: 83, lat: -0.2950, lng: -78.5420, provincia: "Pichincha", riesgo: "alto", fecha: "2024-03-12" },
+// Coordenadas de muestra por provincia (5 puntos por provincia)
+const provinciaCoords = {
+  "PICHINCHA": [
+    { lat: -0.1807, lng: -78.4678 },
+    { lat: -0.2295, lng: -78.5249 },
+    { lat: -0.2902, lng: -78.5458 },
+    { lat: -0.1850, lng: -78.4640 },
+    { lat: -0.2250, lng: -78.5280 }
   ],
-  
-  resumen: {
-    totalVictimas: 6988,
-    conCoordenadas: 6985,
-    sinCoordenadas: 3
-  }
+  "GUAYAS": [
+    { lat: -2.1709, lng: -79.9224 },
+    { lat: -2.1894, lng: -79.8866 },
+    { lat: -2.2158, lng: -79.8897 },
+    { lat: -2.1479, lng: -79.9663 },
+    { lat: -2.1750, lng: -79.9180 }
+  ],
+  "TUNGURAHUA": [
+    { lat: -1.2490, lng: -78.6167 },
+    { lat: -1.2394, lng: -78.6294 },
+    { lat: -1.2550, lng: -78.6100 },
+    { lat: -1.2300, lng: -78.6350 },
+    { lat: -1.2450, lng: -78.6200 }
+  ],
+  "COTOPAXI": [
+    { lat: -0.9347, lng: -78.6156 },
+    { lat: -0.9200, lng: -78.6300 },
+    { lat: -0.9450, lng: -78.6000 },
+    { lat: -0.9100, lng: -78.6400 },
+    { lat: -0.9500, lng: -78.6050 }
+  ],
+  "SUCUMBIOS": [
+    { lat: 0.0833, lng: -76.8833 },
+    { lat: 0.0900, lng: -76.8700 },
+    { lat: 0.0750, lng: -76.8900 },
+    { lat: 0.0950, lng: -76.8650 },
+    { lat: 0.0700, lng: -76.8950 }
+  ],
+  "ESMERALDAS": [
+    { lat: 0.9681, lng: -79.6517 },
+    { lat: 0.9695, lng: -79.6505 },
+    { lat: 0.9670, lng: -79.6530 },
+    { lat: 0.9705, lng: -79.6495 },
+    { lat: 0.9660, lng: -79.6540 }
+  ],
+  "EL ORO": [
+    { lat: -3.2581, lng: -79.9553 },
+    { lat: -3.2595, lng: -79.9540 },
+    { lat: -3.2570, lng: -79.9565 },
+    { lat: -3.2677, lng: -79.9598 },
+    { lat: -3.2690, lng: -79.9585 }
+  ],
+  "CARCHI": [
+    { lat: 0.8120, lng: -77.7177 },
+    { lat: 0.8200, lng: -77.7100 },
+    { lat: 0.8050, lng: -77.7250 },
+    { lat: 0.8250, lng: -77.7050 },
+    { lat: 0.8000, lng: -77.7300 }
+  ],
+  "STO DGO DE LOS TSACHILAS": [
+    { lat: -0.2521, lng: -79.1753 },
+    { lat: -0.2535, lng: -79.1740 },
+    { lat: -0.2510, lng: -79.1765 },
+    { lat: -0.2394, lng: -79.1894 },
+    { lat: -0.2410, lng: -79.1880 }
+  ],
+  "MANABI": [
+    { lat: -0.9537, lng: -80.7089 },
+    { lat: -1.0543, lng: -80.4559 },
+    { lat: -1.0356, lng: -80.6539 },
+    { lat: -0.9550, lng: -80.7075 },
+    { lat: -1.0530, lng: -80.4570 }
+  ],
+  "IMBABURA": [
+    { lat: 0.3518, lng: -78.1226 },
+    { lat: 0.3600, lng: -78.1150 },
+    { lat: 0.3450, lng: -78.1300 },
+    { lat: 0.3650, lng: -78.1100 },
+    { lat: 0.3400, lng: -78.1350 }
+  ],
+  "LOS RIOS": [
+    { lat: -1.8016, lng: -79.5341 },
+    { lat: -1.8030, lng: -79.5330 },
+    { lat: -1.0278, lng: -79.4631 },
+    { lat: -1.0290, lng: -79.4620 },
+    { lat: -1.8000, lng: -79.5350 }
+  ],
+  "AZUAY": [
+    { lat: -2.9001, lng: -79.0059 },
+    { lat: -2.8833, lng: -78.9833 },
+    { lat: -2.9015, lng: -79.0045 },
+    { lat: -2.8900, lng: -78.9900 },
+    { lat: -2.8950, lng: -78.9950 }
+  ],
+  "ZAMORA CHINCHIPE": [
+    { lat: -4.0667, lng: -78.9500 },
+    { lat: -4.0700, lng: -78.9450 },
+    { lat: -4.0650, lng: -78.9550 },
+    { lat: -4.0750, lng: -78.9400 },
+    { lat: -4.0600, lng: -78.9600 }
+  ],
+  "NAPO": [
+    { lat: -1.0044, lng: -77.8144 },
+    { lat: -1.0100, lng: -77.8100 },
+    { lat: -1.0000, lng: -77.8200 },
+    { lat: -1.0150, lng: -77.8050 },
+    { lat: -0.9950, lng: -77.8250 }
+  ],
+  "CHIMBORAZO": [
+    { lat: -1.6635, lng: -78.6547 },
+    { lat: -1.6700, lng: -78.6500 },
+    { lat: -1.6600, lng: -78.6600 },
+    { lat: -1.6750, lng: -78.6450 },
+    { lat: -1.6550, lng: -78.6650 }
+  ],
+  "ORELLANA": [
+    { lat: -0.4586, lng: -76.9875 },
+    { lat: -0.4650, lng: -76.9800 },
+    { lat: -0.4550, lng: -76.9950 },
+    { lat: -0.4700, lng: -76.9750 },
+    { lat: -0.4500, lng: -77.0000 }
+  ],
+  "CAÑAR": [
+    { lat: -2.5597, lng: -78.9378 },
+    { lat: -2.5650, lng: -78.9300 },
+    { lat: -2.5550, lng: -78.9450 },
+    { lat: -2.5700, lng: -78.9250 },
+    { lat: -2.5500, lng: -78.9500 }
+  ],
+  "MORONA SANTIAGO": [
+    { lat: -2.3056, lng: -78.1167 },
+    { lat: -2.3100, lng: -78.1100 },
+    { lat: -2.3000, lng: -78.1200 },
+    { lat: -2.3150, lng: -78.1050 },
+    { lat: -2.2950, lng: -78.1250 }
+  ],
+  "LOJA": [
+    { lat: -3.9931, lng: -79.2042 },
+    { lat: -4.0000, lng: -79.2000 },
+    { lat: -3.9900, lng: -79.2100 },
+    { lat: -4.0050, lng: -79.1950 },
+    { lat: -3.9850, lng: -79.2150 }
+  ],
+  "SANTA ELENA": [
+    { lat: -2.2268, lng: -80.8590 },
+    { lat: -2.2300, lng: -80.8550 },
+    { lat: -2.2250, lng: -80.8650 },
+    { lat: -2.2350, lng: -80.8500 },
+    { lat: -2.2200, lng: -80.8700 }
+  ],
+  "PASTAZA": [
+    { lat: -1.4886, lng: -78.0031 },
+    { lat: -1.4950, lng: -78.0000 },
+    { lat: -1.4850, lng: -78.0100 },
+    { lat: -1.5000, lng: -77.9950 },
+    { lat: -1.4800, lng: -78.0150 }
+  ],
+  "GALAPAGOS": [
+    { lat: -0.7500, lng: -90.3167 },
+    { lat: -0.7550, lng: -90.3100 },
+    { lat: -0.7450, lng: -90.3250 },
+    { lat: -0.7600, lng: -90.3050 },
+    { lat: -0.7400, lng: -90.3300 }
+  ],
+  "BOLIVAR": [
+    { lat: -1.5931, lng: -79.0019 },
+    { lat: -1.6000, lng: -79.0000 },
+    { lat: -1.5900, lng: -79.0100 },
+    { lat: -1.6050, lng: -78.9950 },
+    { lat: -1.5850, lng: -79.0150 }
+  ]
 };
+
+const API_BASE_URL = 'http://127.0.0.1:5000/api';
 
 // Simular delay de red
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const api = {
-  // Obtener todos los incidentes
-  async getIncidentes() {
-    await delay(500);
-    return mockData.incidentes;
-  },
+  // ==================== MODELO 1 ====================
   
-  // Filtrar incidentes
-  async getIncidentesFiltrados({ year, rangoEdad, provincia, riesgo, fechaInicio, fechaFin }) {
-    await delay(500);
-    
-    let filtered = [...mockData.incidentes];
-    
-    if (year && year !== 'all') {
-      filtered = filtered.filter(inc => inc.fecha.startsWith(year));
+  // Endpoint 1: Predecir contexto de riesgo
+  async predecirContexto(fecha, provincia) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/prediccion/contexto`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fecha,
+          provincia
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error en la predicción de contexto');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error en predecirContexto:', error);
+      throw error;
     }
-    
-    if (provincia && provincia !== 'all') {
-      filtered = filtered.filter(inc => inc.provincia === provincia);
-    }
-    
-    if (riesgo && riesgo !== 'all') {
-      filtered = filtered.filter(inc => inc.riesgo === riesgo);
-    }
-    
-    if (fechaInicio) {
-      filtered = filtered.filter(inc => inc.fecha >= fechaInicio);
-    }
-    
-    if (fechaFin) {
-      filtered = filtered.filter(inc => inc.fecha <= fechaFin);
-    }
-    
-    return filtered;
   },
+
+  // Endpoint 2: Predecir localización
+  async predecirLocalizacion(desapariciones_estimadas, fecha, provincia, riesgo) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/prediccion/localizacion`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          desapariciones_estimadas,
+          fecha,
+          provincia,
+          riesgo
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error en la predicción de localización');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error en predecirLocalizacion:', error);
+      throw error;
+    }
+  },
+
+  // Función completa para Modelo 1 - Procesa múltiples coordenadas
+  async procesarModelo1(fecha, provincia) {
+    try {
+      // Paso 1: Obtener contexto de riesgo
+      const contexto = await this.predecirContexto(fecha, provincia);
+      
+      // Paso 2: Obtener coordenadas de la provincia
+      const coords = provinciaCoords[provincia] || [];
+      
+      // Paso 3: Hacer predicciones en paralelo para cada coordenada
+      const predicciones = await Promise.all(
+        coords.map(async (coord) => {
+          try {
+            const resultado = await this.predecirLocalizacion(
+              contexto.desapariciones_estimadas,
+              fecha,
+              provincia,
+              contexto.riesgo
+            );
+            
+            // Retornar los puntos con información adicional
+            return resultado.puntos.map(punto => ({
+              ...punto,
+              riesgo: contexto.riesgo_label,
+              fecha: fecha
+            }));
+          } catch (error) {
+            console.error('Error en predicción individual:', error);
+            return [];
+          }
+        })
+      );
+      
+      // Aplanar el array de arrays
+      const todosPuntos = predicciones.flat();
+      
+      return {
+        contexto,
+        puntos: todosPuntos
+      };
+    } catch (error) {
+      console.error('Error en procesarModelo1:', error);
+      throw error;
+    }
+  },
+
+  // ==================== MODELO 2 ====================
   
-  // Obtener resumen
-  async getResumen() {
-    await delay(300);
-    return mockData.resumen;
+  // Endpoint único para Modelo 2
+  async predecirPuntoRiesgo(fecha, lat, lng, provincia) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/prediccion/punto`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fecha,
+          lat,
+          lng,
+          provincia
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error en la predicción de punto de riesgo');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error en predecirPuntoRiesgo:', error);
+      throw error;
+    }
   },
+
+  // Función completa para Modelo 2 - Procesa múltiples coordenadas
+  async procesarModelo2(fecha, provincia, latitud = null, longitud = null) {
+    try {
+      let coordsToProcess = [];
+      
+      // Si se proporcionan coordenadas específicas, usarlas
+      if (latitud !== null && longitud !== null) {
+        coordsToProcess = [{ lat: parseFloat(latitud), lng: parseFloat(longitud) }];
+      } else {
+        // Si no, usar las 5 coordenadas de la provincia
+        coordsToProcess = provinciaCoords[provincia] || [];
+      }
+      
+      // Hacer predicciones en paralelo para cada coordenada
+      const predicciones = await Promise.all(
+        coordsToProcess.map(async (coord) => {
+          try {
+            const resultado = await this.predecirPuntoRiesgo(
+              fecha,
+              coord.lat,
+              coord.lng,
+              provincia
+            );
+            
+            return {
+              lat: resultado.ubicacion.lat,
+              lng: resultado.ubicacion.lng,
+              peso: resultado.n_desapariciones,
+              riesgo: resultado.riesgo.nivel,
+              fecha: resultado.fecha
+            };
+          } catch (error) {
+            console.error('Error en predicción individual:', error);
+            return null;
+          }
+        })
+      );
+      
+      // Filtrar nulls y retornar
+      return predicciones.filter(p => p !== null);
+    } catch (error) {
+      console.error('Error en procesarModelo2:', error);
+      throw error;
+    }
+  },
+
+  // ==================== UTILIDADES ====================
   
   // Obtener lista de provincias
-  async getProvincias() {
-    await delay(200);
-    const provincias = [...new Set(mockData.incidentes.map(inc => inc.provincia))];
-    return provincias.sort();
+  getProvincias() {
+    return Object.keys(provinciaCoords).sort();
+  },
+
+  // Obtener coordenadas de una provincia
+  getCoordenadasProvincia(provincia) {
+    return provinciaCoords[provincia] || [];
   }
 };
