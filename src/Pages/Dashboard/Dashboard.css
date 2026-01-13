@@ -216,6 +216,16 @@
   color: #F44336;
 }
 
+.result-badge.nacional {
+  background-color: rgba(33, 150, 243, 0.2);
+  color: #2196F3;
+}
+
+.result-badge.variable {
+  background-color: rgba(156, 39, 176, 0.2);
+  color: #9C27B0;
+}
+
 /* Mapa */
 .map-container {
   flex: 1;

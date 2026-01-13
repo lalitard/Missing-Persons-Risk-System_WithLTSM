@@ -6,33 +6,28 @@ import 'leaflet/dist/leaflet.css';
 import './Dashboard.css';
 import { api } from '../../Service/api';
 import Loader from '../../Components/Loader/Loader';
-
-// Importar leaflet.heat de forma dinámica
 import 'leaflet.heat';
 
-// Componente personalizado para el mapa de calor
 function HeatmapLayer({ points }) {
   const map = useMap();
 
   useEffect(() => {
     if (!map || !points || points.length === 0) return;
 
-    // Verificar que L.heatLayer existe
     if (!L.heatLayer) {
       console.error('leaflet.heat no está cargado correctamente');
       return;
     }
 
-    // Crear capa de calor con configuración intensificada
     const heatLayer = L.heatLayer(points, {
-      radius: 30,           // Radio más grande para mayor visibilidad
-      blur: 20,             // Más blur para efecto suave
-      maxZoom: 10,          // Reducido para que se vea en zoom alejado
-      max: 3.0,             // Aumentado para intensificar colores
-      minOpacity: 0.6,      // Opacidad mínima para mejor visibilidad
+      radius: 30,
+      blur: 20,
+      maxZoom: 10,
+      max: 3.0,
+      minOpacity: 0.4, // ✅ Reducido para ver mejor los valores bajos
       gradient: {
-        0.0: 'rgba(0, 0, 255, 0)',
-        0.2: 'blue',
+        0.0: 'rgba(0, 150, 255, 0.3)', // ✅ Azul para riesgo bajo
+        0.2: 'rgba(0, 200, 255, 0.5)', // ✅ Azul claro
         0.4: 'cyan',
         0.5: 'lime',
         0.6: 'yellow',
@@ -42,7 +37,6 @@ function HeatmapLayer({ points }) {
       }
     }).addTo(map);
 
-    // Limpiar al desmontar
     return () => {
       map.removeLayer(heatLayer);
     };
@@ -51,13 +45,25 @@ function HeatmapLayer({ points }) {
   return null;
 }
 
+function MapViewController({ center, zoom }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (center && zoom) {
+      map.setView(center, zoom);
+    }
+  }, [center, zoom, map]);
+  
+  return null;
+}
+
 function Dashboard() {
   const [heatmapData, setHeatmapData] = useState([]);
   const [provincias, setProvincias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [resultadoPrediccion, setResultadoPrediccion] = useState(null);
+  const [mapView, setMapView] = useState({ center: [-1.8312, -78.1834], zoom: 7 });
   
-  // Filtros
   const [filters, setFilters] = useState({
     fecha: '',
     provincia: 'all',
@@ -65,28 +71,41 @@ function Dashboard() {
     longitud: '',
     modelo: 'modelo1'
   });
-  
-  const [mapCenter] = useState([-1.8312, -78.1834]); // Centro de Ecuador
 
-  // Cargar provincias al montar
   useEffect(() => {
     const provinciasData = api.getProvincias();
     setProvincias(provinciasData);
   }, []);
 
-  // Aplicar filtros y hacer predicción
+  // ✅ Resetear provincia al cambiar de modelo
+  useEffect(() => {
+    if (filters.modelo === 'modelo2' && filters.provincia === 'all') {
+      setFilters(prev => ({
+        ...prev,
+        provincia: provincias[0] || 'GUAYAS'
+      }));
+    }
+  }, [filters.modelo, provincias]);
+
+  useEffect(() => {
+    if (filters.provincia === 'all') {
+      setMapView({ center: [-1.8312, -78.1834], zoom: 7 });
+    } else {
+      const centroProvincia = api.getCentroProvincia(filters.provincia);
+      setMapView({ 
+        center: [centroProvincia.lat, centroProvincia.lng], 
+        zoom: centroProvincia.zoom 
+      });
+    }
+  }, [filters.provincia, filters.modelo]);
+
   const handleApplyFilters = async () => {
-    // Validaciones
     if (!filters.fecha) {
       alert('Por favor selecciona una fecha');
       return;
     }
-    
-    if (filters.provincia === 'all') {
-      alert('Por favor selecciona una provincia');
-      return;
-    }
 
+    // ✅ Validación específica para Modelo 2
     if (filters.modelo === 'modelo2') {
       if (!filters.latitud || !filters.longitud) {
         alert('Para el Modelo 2, debes ingresar latitud y longitud');
@@ -100,28 +119,46 @@ function Dashboard() {
       setHeatmapData([]);
 
       if (filters.modelo === 'modelo1') {
-        // Procesar Modelo 1
-        const resultado = await api.procesarModelo1(
-          filters.fecha,
-          filters.provincia
-        );
+        if (filters.provincia === 'all') {
+          const puntos = await api.procesarTodasLasProvincias(filters.fecha);
+          
+          setResultadoPrediccion({
+            tipo: 'modelo1',
+            contexto: { riesgo_label: 'VARIABLE' },
+            totalPuntos: puntos.length,
+            todasProvincias: true
+          });
 
-        setResultadoPrediccion({
-          tipo: 'modelo1',
-          contexto: resultado.contexto,
-          totalPuntos: resultado.puntos.length
-        });
+          const heatPoints = puntos.map(punto => [
+            punto.lat,
+            punto.lng,
+            punto.peso || 1.0
+          ]);
 
-        // Convertir puntos para el mapa de calor
-        const heatPoints = resultado.puntos.map(punto => [
-          punto.lat,
-          punto.lng,
-          punto.peso || 1.0
-        ]);
+          setHeatmapData(heatPoints);
+        } else {
+          const resultado = await api.procesarModelo1(
+            filters.fecha,
+            filters.provincia
+          );
 
-        setHeatmapData(heatPoints);
+          setResultadoPrediccion({
+            tipo: 'modelo1',
+            contexto: resultado.contexto,
+            totalPuntos: resultado.puntos.length,
+            desaparicionesEstimadas: resultado.contexto.desapariciones_estimadas
+          });
+
+          const heatPoints = resultado.puntos.map(punto => [
+            punto.lat,
+            punto.lng,
+            punto.peso || 1.0
+          ]);
+
+          setHeatmapData(heatPoints);
+        }
       } else {
-        // Procesar Modelo 2
+        // ✅ Modelo 2 - Solo coordenadas específicas
         const puntos = await api.procesarModelo2(
           filters.fecha,
           filters.provincia,
@@ -132,17 +169,23 @@ function Dashboard() {
         setResultadoPrediccion({
           tipo: 'modelo2',
           totalPuntos: puntos.length,
-          riesgoPromedio: puntos.length > 0 ? puntos[0].riesgo : 'N/A'
+          riesgoDetectado: puntos[0]?.riesgo || 'N/A',
+          desaparicionesEstimadas: puntos[0]?.n_desapariciones || 0
         });
 
-        // Convertir puntos para el mapa de calor
         const heatPoints = puntos.map(punto => [
           punto.lat,
           punto.lng,
-          punto.peso || 1.0
+          punto.peso
         ]);
 
         setHeatmapData(heatPoints);
+
+        // ✅ Hacer zoom a las coordenadas específicas
+        setMapView({
+          center: [parseFloat(filters.latitud), parseFloat(filters.longitud)],
+          zoom: 13
+        });
       }
     } catch (error) {
       console.error('Error al aplicar filtros:', error);
@@ -161,18 +204,14 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-      {/* Panel de filtros */}
       <div className="sidebar">
         <div className="sidebar-header">
           <div className="header-icon">🗺️</div>
           <h2>Mapa Personas Desaparecidas Ecuador</h2>
         </div>
 
-        {/* Selector de Modelo */}
         <div className="filter-section">
-          <label className="filter-label">
-            🤖 Modelo de Predicción
-          </label>
+          <label className="filter-label">🤖 Modelo de Predicción</label>
           <select 
             className="filter-select"
             value={filters.modelo}
@@ -183,11 +222,8 @@ function Dashboard() {
           </select>
         </div>
 
-        {/* Filtro de Fecha con DatePicker */}
         <div className="filter-section">
-          <label className="filter-label">
-            📅 Fecha
-          </label>
+          <label className="filter-label">📅 Fecha</label>
           <input 
             type="date"
             className="filter-input"
@@ -196,7 +232,6 @@ function Dashboard() {
           />
         </div>
 
-        {/* Filtro de Provincia */}
         <div className="filter-section">
           <label className="filter-label">📍 Provincia</label>
           <select 
@@ -204,14 +239,17 @@ function Dashboard() {
             value={filters.provincia}
             onChange={(e) => handleFilterChange('provincia', e.target.value)}
           >
-            <option value="all">Selecciona una provincia</option>
+            {/* ✅ Solo mostrar "Todas las provincias" en Modelo 1 */}
+            {filters.modelo === 'modelo1' && (
+              <option value="all">🌍 Todas las provincias</option>
+            )}
             {provincias.map(prov => (
               <option key={prov} value={prov}>{prov}</option>
             ))}
           </select>
         </div>
 
-        {/* Campos de Latitud y Longitud - Solo para Modelo 2 */}
+        {/* ✅ Campos de coordenadas - Solo para Modelo 2 */}
         {filters.modelo === 'modelo2' && (
           <>
             <div className="filter-section">
@@ -240,7 +278,6 @@ function Dashboard() {
           </>
         )}
 
-        {/* Botón para aplicar filtros */}
         <div className="filter-section">
           <button 
             className="apply-button-main" 
@@ -251,56 +288,64 @@ function Dashboard() {
           </button>
         </div>
 
-        {/* Información del modelo seleccionado */}
         <div className="model-info">
           <h4>ℹ️ Información del Modelo</h4>
           {filters.modelo === 'modelo1' ? (
             <p>
               <strong>Modelo 1:</strong> Analiza patrones basados en fecha y provincia. 
-              Genera predicciones en 5 puntos estratégicos de la provincia seleccionada.
+              {filters.provincia === 'all' 
+                ? ' Muestra predicciones para todo Ecuador.' 
+                : ' Genera 5 predicciones para la provincia seleccionada.'}
             </p>
           ) : (
             <p>
-              <strong>Modelo 2:</strong> Análisis geoespacial preciso usando fecha, provincia 
-              y coordenadas específicas. Proporciona resultados más detallados por ubicación.
+              <strong>Modelo 2:</strong> Análisis geoespacial preciso. Ingresa coordenadas 
+              específicas para obtener la predicción de riesgo en ese punto exacto.
             </p>
           )}
         </div>
 
-        {/* Resultado de la predicción */}
         {resultadoPrediccion && (
           <div className="prediction-result">
             <h4>📊 Resultado de la Predicción</h4>
-            {resultadoPrediccion.tipo === 'modelo1' && (
+            {resultadoPrediccion.todasProvincias && (
+              <div className="result-item">
+                <span className="result-label">Alcance:</span>
+                <span className="result-badge nacional">NACIONAL</span>
+              </div>
+            )}
+            {resultadoPrediccion.tipo === 'modelo1' && !resultadoPrediccion.todasProvincias && (
               <>
                 <div className="result-item">
                   <span className="result-label">Desapariciones estimadas:</span>
                   <span className="result-value">
-                    {resultadoPrediccion.contexto.desapariciones_estimadas.toFixed(2)}
+                    {resultadoPrediccion.desaparicionesEstimadas?.toFixed(2) || '0.00'}
                   </span>
                 </div>
                 <div className="result-item">
                   <span className="result-label">Nivel de riesgo:</span>
-                  <span className={`result-badge ${resultadoPrediccion.contexto.riesgo_label.toLowerCase()}`}>
-                    {resultadoPrediccion.contexto.riesgo_label}
+                  <span className={`result-badge ${resultadoPrediccion.contexto?.riesgo_label?.toLowerCase() || 'bajo'}`}>
+                    {resultadoPrediccion.contexto?.riesgo_label || 'N/A'}
                   </span>
-                </div>
-                <div className="result-item">
-                  <span className="result-label">Puntos analizados:</span>
-                  <span className="result-value">{resultadoPrediccion.totalPuntos}</span>
                 </div>
               </>
             )}
+            <div className="result-item">
+              <span className="result-label">Puntos analizados:</span>
+              <span className="result-value">{resultadoPrediccion.totalPuntos}</span>
+            </div>
             {resultadoPrediccion.tipo === 'modelo2' && (
               <>
                 <div className="result-item">
-                  <span className="result-label">Puntos analizados:</span>
-                  <span className="result-value">{resultadoPrediccion.totalPuntos}</span>
+                  <span className="result-label">Riesgo detectado:</span>
+                  <span className={`result-badge ${resultadoPrediccion.riesgoDetectado?.toLowerCase() || 'bajo'}`}>
+                    {resultadoPrediccion.riesgoDetectado || 'N/A'}
+                  </span>
                 </div>
                 <div className="result-item">
-                  <span className="result-label">Riesgo detectado:</span>
-                  <span className={`result-badge ${resultadoPrediccion.riesgoPromedio.toLowerCase()}`}>
-                    {resultadoPrediccion.riesgoPromedio}
+                  <span className="result-label">Desapariciones estimadas:</span>
+                  <span className="result-value">
+                    {resultadoPrediccion.desaparicionesEstimadas?.toFixed(2) || '0.00'}
                   </span>
                 </div>
               </>
@@ -309,17 +354,16 @@ function Dashboard() {
         )}
       </div>
 
-      {/* Mapa */}
       <div className="map-container">
         {loading && (
           <div className="map-loader-overlay">
-            <Loader message="Procesando predicción en múltiples puntos..." />
+            <Loader message={filters.provincia === 'all' ? "Procesando todas las provincias..." : "Procesando predicción..."} />
           </div>
         )}
         
         <MapContainer
-          center={mapCenter}
-          zoom={7}
+          center={mapView.center}
+          zoom={mapView.zoom}
           style={{ height: '100%', width: '100%' }}
           zoomControl={true}
         >
@@ -328,12 +372,13 @@ function Dashboard() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           
+          <MapViewController center={mapView.center} zoom={mapView.zoom} />
+          
           {heatmapData.length > 0 && (
             <HeatmapLayer points={heatmapData} />
           )}
         </MapContainer>
 
-        {/* Panel de resumen */}
         {heatmapData.length > 0 && (
           <div className="summary-panel">
             <h3>📊 Resumen de Predicción</h3>
@@ -361,7 +406,6 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Leyenda del mapa de calor */}
             <div className="legend">
               <h4>Intensidad de Riesgo</h4>
               <div className="legend-gradient">
