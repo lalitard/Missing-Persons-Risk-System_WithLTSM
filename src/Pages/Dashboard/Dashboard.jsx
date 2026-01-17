@@ -120,16 +120,19 @@ function Dashboard() {
 
       if (filters.modelo === 'modelo1') {
         if (filters.provincia === 'all') {
-          const puntos = await api.procesarTodasLasProvincias(filters.fecha);
+          const resultado = await api.procesarTodasLasProvincias(filters.fecha);
           
           setResultadoPrediccion({
             tipo: 'modelo1',
-            contexto: { riesgo_label: 'VARIABLE' },
-            totalPuntos: puntos.length,
-            todasProvincias: true
+            totalPuntos: resultado.puntos.length,
+            todasProvincias: true,
+            desaparicionesEstimadas: resultado.estadisticasNacionales.promedioDesapariciones,
+            contexto: { 
+              riesgo_label: resultado.estadisticasNacionales.nivelRiesgoNacional 
+            }
           });
 
-          const heatPoints = puntos.map(punto => [
+          const heatPoints = resultado.puntos.map(punto => [
             punto.lat,
             punto.lng,
             punto.peso || 1.0
@@ -304,54 +307,6 @@ function Dashboard() {
             </p>
           )}
         </div>
-
-        {resultadoPrediccion && (
-          <div className="prediction-result">
-            <h4>📊 Resultado de la Predicción</h4>
-            {resultadoPrediccion.todasProvincias && (
-              <div className="result-item">
-                <span className="result-label">Alcance:</span>
-                <span className="result-badge nacional">NACIONAL</span>
-              </div>
-            )}
-            {resultadoPrediccion.tipo === 'modelo1' && !resultadoPrediccion.todasProvincias && (
-              <>
-                <div className="result-item">
-                  <span className="result-label">Desapariciones estimadas:</span>
-                  <span className="result-value">
-                    {resultadoPrediccion.desaparicionesEstimadas?.toFixed(2) || '0.00'}
-                  </span>
-                </div>
-                <div className="result-item">
-                  <span className="result-label">Nivel de riesgo:</span>
-                  <span className={`result-badge ${resultadoPrediccion.contexto?.riesgo_label?.toLowerCase() || 'bajo'}`}>
-                    {resultadoPrediccion.contexto?.riesgo_label || 'N/A'}
-                  </span>
-                </div>
-              </>
-            )}
-            <div className="result-item">
-              <span className="result-label">Puntos analizados:</span>
-              <span className="result-value">{resultadoPrediccion.totalPuntos}</span>
-            </div>
-            {resultadoPrediccion.tipo === 'modelo2' && (
-              <>
-                <div className="result-item">
-                  <span className="result-label">Riesgo detectado:</span>
-                  <span className={`result-badge ${resultadoPrediccion.riesgoDetectado?.toLowerCase() || 'bajo'}`}>
-                    {resultadoPrediccion.riesgoDetectado || 'N/A'}
-                  </span>
-                </div>
-                <div className="result-item">
-                  <span className="result-label">Desapariciones estimadas:</span>
-                  <span className="result-value">
-                    {resultadoPrediccion.desaparicionesEstimadas?.toFixed(2) || '0.00'}
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
-        )}
       </div>
 
       <div className="map-container">
@@ -381,20 +336,33 @@ function Dashboard() {
 
         {heatmapData.length > 0 && (
           <div className="summary-panel">
-            <h3>📊 Resumen de Predicción</h3>
+            <h3>📊 Resultado de Predicciones</h3>
             <div className="summary-stats">
               <div className="stat-item">
-                <span className="stat-icon">📍</span>
+                <span className="stat-icon">📉</span>
                 <div>
-                  <div className="stat-label">Puntos de riesgo:</div>
-                  <div className="stat-value">{heatmapData.length}</div>
+                  <div className="stat-label">Desapariciones estimadas:</div>
+                  <div className="stat-value">
+                    {resultadoPrediccion?.desaparicionesEstimadas?.toFixed(2) || '0.00'}
+                  </div>
                 </div>
               </div>
               <div className="stat-item">
-                <span className="stat-icon">🤖</span>
+                <span className="stat-icon">⚠️</span>
                 <div>
-                  <div className="stat-label">Modelo activo:</div>
-                  <div className="stat-value">{filters.modelo === 'modelo1' ? 'M1' : 'M2'}</div>
+                  <div className="stat-label">Nivel de riesgo:</div>
+                  <div className="stat-value">
+                    {resultadoPrediccion?.contexto?.riesgo_label || 
+                     resultadoPrediccion?.riesgoDetectado || 
+                     'N/A'}
+                  </div>
+                </div>
+              </div>
+              <div className="stat-item">
+                <span className="stat-icon">📍</span>
+                <div>
+                  <div className="stat-label">Puntos analizados:</div>
+                  <div className="stat-value">{heatmapData.length}</div>
                 </div>
               </div>
               <div className="stat-item">
